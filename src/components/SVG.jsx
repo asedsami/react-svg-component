@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { isEventMultitouch } from "../utils";
 const { log: clog } = console;
+const ZOOM_RATE_BASE = 8
 
 function SVG(props) {
   let svgRef = useRef(null);
@@ -95,6 +96,29 @@ function SVG(props) {
     e.preventDefault();
   };
 
+  const zoom = (deltaY, isZoomingIn) => {
+    const zoomRate = deltaY / ZOOM_RATE_BASE 
+    const width = Math.round( +viewBoxArr[2] + zoomRate )
+    const height = Math.round( +viewBoxArr[3] + zoomRate )
+
+    if ((width < 0) || (height < 0)) {
+      return
+    }
+
+    setViewBox([
+      viewBoxArr[0],
+      viewBoxArr[1],
+      width,
+      height,
+    ])
+  }
+
+  const onWheel = (e) => {
+    const isZoomingIn = e.deltaY < 0
+
+    zoom(Math.round(e.deltaY), isZoomingIn)
+  }
+
   const viewBox = viewBoxArr.join(" ");
 
   return (
@@ -111,6 +135,7 @@ function SVG(props) {
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
+        onWheel={onWheel}
       >
         {props.children}
       </svg>
